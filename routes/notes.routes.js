@@ -1,13 +1,11 @@
-import express from 'express';
-import { getNotes, addNote, updateNote, deleteNote } from '../controllers/notes.controller.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+// routes/notes.routes.js
+import { Router } from 'express';
+import { getNotes, createNote, updateNote, deleteNote } from '../controllers/notes.controller.js';
 
-const router = express.Router();
-
-router.use(authMiddleware); // proteger todas las rutas
+const router = Router();
 
 router.get('/', getNotes);
-router.post('/', addNote);
+router.post('/', createNote);
 router.put('/:id', updateNote);
 router.delete('/:id', deleteNote);
 
