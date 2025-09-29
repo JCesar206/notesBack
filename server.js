@@ -28,5 +28,5 @@ db.getConnection()
 // Servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en https://notesback-tb4o.onrender.com/api/auth/register,${PORT}`);
+  console.log(`🚀 Servidor corriendo en https://notesback-tb4o.onrender.com/api/auth/register/${PORT}`);
 });
