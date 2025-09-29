@@ -1,10 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+export const db = await mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
+});
 
-console.log("✅ Conectado a Supabase");
+console.log("✅ Conectado a la base de datos");

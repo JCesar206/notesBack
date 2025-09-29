@@ -1,14 +1,14 @@
 import express from 'express';
-import { supabase } from '../db.js';
+import { db } from '../db.js';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// Middleware auth
-const auth = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'No autorizado' });
 
+  const token = authHeader.split(' ')[1];
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
@@ -17,56 +17,54 @@ const auth = (req, res, next) => {
   }
 };
 
-// Obtener notas
-router.get('/', auth, async (req, res) => {
-  const { data, error } = await supabase
-    .from('notes')
-    .select('*')
-    .eq('user_id', req.user.id);
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+// Listar notas del usuario
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const [notes] = await db.execute('SELECT * FROM notes WHERE user_id = ?', [req.user.id]);
+    res.json(notes);
+  } catch {
+    res.status(500).json({ error: 'Error al obtener notas' });
+  }
 });
 
-// Crear nota
-router.post('/', auth, async (req, res) => {
+// Agregar nota
+router.post('/', authMiddleware, async (req, res) => {
   const { title, content, category, favorite, completed } = req.body;
-  const { data, error } = await supabase
-    .from('notes')
-    .insert([{ user_id: req.user.id, title, content, category, favorite, completed }])
-    .select();
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data[0]);
+  try {
+    await db.execute(
+      'INSERT INTO notes (title, content, category, favorite, completed, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [title, content, category, favorite ? 1 : 0, completed ? 1 : 0, req.user.id]
+    );
+    res.json({ message: 'Nota agregada' });
+  } catch {
+    res.status(500).json({ error: 'Error al agregar nota' });
+  }
 });
 
-// Actualizar nota
-router.put('/:id', auth, async (req, res) => {
+// Editar nota
+router.put('/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { title, content, category, favorite, completed } = req.body;
-
-  const { data, error } = await supabase
-    .from('notes')
-    .update({ title, content, category, favorite, completed })
-    .eq('id', id)
-    .eq('user_id', req.user.id)
-    .select();
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data[0]);
+  try {
+    await db.execute(
+      'UPDATE notes SET title=?, content=?, category=?, favorite=?, completed=? WHERE id=? AND user_id=?',
+      [title, content, category, favorite ? 1 : 0, completed ? 1 : 0, id, req.user.id]
+    );
+    res.json({ message: 'Nota actualizada' });
+  } catch {
+    res.status(500).json({ error: 'Error al actualizar nota' });
+  }
 });
 
-// Borrar nota
-router.delete('/:id', auth, async (req, res) => {
+// Eliminar nota
+router.delete('/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { data, error } = await supabase
-    .from('notes')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', req.user.id);
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ message: 'Nota eliminada' });
+  try {
+    await db.execute('DELETE FROM notes WHERE id=? AND user_id=?', [id, req.user.id]);
+    res.json({ message: 'Nota eliminada' });
+  } catch {
+    res.status(500).json({ error: 'Error al eliminar nota' });
+  }
 });
 
 export default router;

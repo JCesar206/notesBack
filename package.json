@@ -1,17 +1,17 @@
 {
   "name": "notas-backend",
   "version": "1.0.0",
-  "main": "server.js",
   "type": "module",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "mysql2": "^3.9.7",
-    "dotenv": "^16.3.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "mysql2": "^3.5.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.0"
   }
 }
