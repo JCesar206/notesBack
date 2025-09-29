@@ -1,8 +1,7 @@
-// migrate.js - ejecuta init.sql localmente usando pool.query
 import fs from "fs";
 import pool from "./db.js";
 
-const sql = fs.readFileSync("init.sql", "utf8");
+const sql = fs.readFileSync(new URL("./init.sql", import.meta.url), "utf8");
 
 (async () => {
   try {

@@ -2,8 +2,8 @@ import pool from "../db.js";
 
 export const createNote = async (req, res) => {
   try {
-    const { title, content, category, favorite, completed } = req.body;
     const userId = req.user.id;
+    const { title, content, category, favorite, completed } = req.body;
     if (!title) return res.status(400).json({ error: "Título requerido" });
 
     const [result] = await pool.query(
@@ -30,8 +30,8 @@ export const getNotes = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   try {
-    const id = req.params.id;
     const userId = req.user.id;
+    const id = req.params.id;
     const { title, content, category, favorite, completed } = req.body;
 
     const [result] = await pool.query(
@@ -49,8 +49,8 @@ export const updateNote = async (req, res) => {
 
 export const deleteNote = async (req, res) => {
   try {
-    const id = req.params.id;
     const userId = req.user.id;
+    const id = req.params.id;
     const [result] = await pool.query("DELETE FROM notes WHERE id=? AND user_id=?", [id, userId]);
     if (result.affectedRows === 0) return res.status(404).json({ error: "Nota no encontrada" });
     return res.json({ message: "Nota eliminada" });

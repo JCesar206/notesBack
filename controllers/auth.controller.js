@@ -7,8 +7,8 @@ export const register = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Email y password requeridos" });
 
-    const [exists] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
-    if (exists.length) return res.status(400).json({ error: "Usuario ya existe" });
+    const [row] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
+    if (row.length) return res.status(400).json({ error: "Usuario ya existe" });
 
     const hashed = await bcrypt.hash(password, 10);
     await pool.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hashed]);
@@ -41,9 +41,9 @@ export const login = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   try {
-    const { newPassword } = req.body;
     const userId = req.user?.id;
-    if (!newPassword || !userId) return res.status(400).json({ error: "Datos faltantes" });
+    const { newPassword } = req.body;
+    if (!userId || !newPassword) return res.status(400).json({ error: "Datos faltantes" });
 
     const hashed = await bcrypt.hash(newPassword, 10);
     await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashed, userId]);
