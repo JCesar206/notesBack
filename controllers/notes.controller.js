@@ -1,61 +1,46 @@
-import pool from "../db.js";
-
-export const createNote = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { title, content, category, favorite, completed } = req.body;
-    if (!title) return res.status(400).json({ error: "Título requerido" });
-
-    const [result] = await pool.query(
-      "INSERT INTO notes (user_id, title, content, category, favorite, completed) VALUES (?, ?, ?, ?, ?, ?)",
-      [userId, title, content || null, category || null, favorite ? 1 : 0, completed ? 1 : 0]
-    );
-    return res.status(201).json({ message: "Nota creada", noteId: result.insertId });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al crear nota" });
-  }
-};
+import { supabase } from '../db.js';
 
 export const getNotes = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const [rows] = await pool.query("SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC", [userId]);
-    return res.json(rows);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al obtener notas" });
-  }
+  const userId = req.userId;
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('user_id', userId);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+};
+
+export const addNote = async (req, res) => {
+  const userId = req.userId;
+  const { title, content, category, favorite, completed } = req.body;
+  const { data, error } = await supabase
+    .from('notes')
+    .insert([{ title, content, category, favorite, completed, user_id: userId }]);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data[0]);
 };
 
 export const updateNote = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const id = req.params.id;
-    const { title, content, category, favorite, completed } = req.body;
-
-    const [result] = await pool.query(
-      "UPDATE notes SET title=?, content=?, category=?, favorite=?, completed=? WHERE id=? AND user_id=?",
-      [title, content, category, favorite ? 1 : 0, completed ? 1 : 0, id, userId]
-    );
-
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Nota no encontrada" });
-    return res.json({ message: "Nota actualizada" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al actualizar nota" });
-  }
+  const userId = req.userId;
+  const { id } = req.params;
+  const { title, content, category, favorite, completed } = req.body;
+  const { data, error } = await supabase
+    .from('notes')
+    .update({ title, content, category, favorite, completed })
+    .eq('id', id)
+    .eq('user_id', userId);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data[0]);
 };
 
 export const deleteNote = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const id = req.params.id;
-    const [result] = await pool.query("DELETE FROM notes WHERE id=? AND user_id=?", [id, userId]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Nota no encontrada" });
-    return res.json({ message: "Nota eliminada" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al eliminar nota" });
-  }
+  const userId = req.userId;
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ message: 'Nota eliminada' });
 };

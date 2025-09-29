@@ -1,55 +1,39 @@
-import pool from "../db.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { supabase } from '../db.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email y password requeridos" });
-
-    const [row] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
-    if (row.length) return res.status(400).json({ error: "Usuario ya existe" });
-
     const hashed = await bcrypt.hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hashed]);
-    return res.status(201).json({ message: "Usuario registrado" });
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ email, password: hashed }]);
+    if (error) return res.status(400).json({ error: error.message });
+    res.json({ message: 'Usuario registrado' });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error en servidor" });
+    res.status(500).json({ error: 'Error al registrar' });
   }
 };
 
 export const login = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email y password requeridos" });
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+    if (error || !data) return res.status(401).json({ error: 'Usuario no encontrado' });
 
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) return res.status(401).json({ error: "Credenciales inválidas" });
+    const valid = await bcrypt.compare(password, data.password);
+    if (!valid) return res.status(401).json({ error: 'Contraseña incorrecta' });
 
-    const user = rows[0];
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: "Credenciales inválidas" });
-
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "8h" });
-    return res.json({ token });
+    const token = jwt.sign({ userId: data.id }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: { id: data.id, email: data.email } });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error en servidor" });
-  }
-};
-
-export const changePassword = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const { newPassword } = req.body;
-    if (!userId || !newPassword) return res.status(400).json({ error: "Datos faltantes" });
-
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashed, userId]);
-    return res.json({ message: "Contraseña actualizada" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error en servidor" });
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
