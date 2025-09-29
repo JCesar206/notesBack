@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config(); // solo hace efecto en local con .env
 
-// Usar variables de entorno para producción (Render) y local
+// Usar variables de entorno para producción (Render) y local...
 const supabaseUrl = process.env.SUPABASE_URL || 'https://jeoejvyvnigzkedlzsev.supabase.co';
 const supabaseKey = process.env.SUPABASE_KEY;
 
