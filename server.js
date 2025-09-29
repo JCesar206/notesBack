@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 
 // Configurar CORS
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://jcesar206.github.io/notesFront/";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://jcesar206.github.io/notesFront";
 
 app.use(cors({
   origin: FRONTEND_URL,
