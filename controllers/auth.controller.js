@@ -1,39 +1,72 @@
-import { supabase } from '../db.js';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import supabase from '../db.js';
+import bcrypt from 'bcryptjs';
 
 export const register = async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const hashed = await bcrypt.hash(password, 10);
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ email, password: hashed }]);
-    if (error) return res.status(400).json({ error: error.message });
-    res.json({ message: 'Usuario registrado' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al registrar' });
-  }
-};
+    const { email, password } = req.body;
 
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const { data, error } = await supabase
+    // Validar
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+    }
+
+    // Verificar si existe usuario
+    const { data: existingUser, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('email', email)
       .single();
-    if (error || !data) return res.status(401).json({ error: 'Usuario no encontrado' });
 
-    const valid = await bcrypt.compare(password, data.password);
-    if (!valid) return res.status(401).json({ error: 'Contraseña incorrecta' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'El usuario ya existe' });
+    }
 
-    const token = jwt.sign({ userId: data.id }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token, user: { id: data.id, email: data.email } });
+    // Hashear contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear usuario
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert([{ email, password: hashedPassword }]);
+
+    if (insertError) throw insertError;
+
+    res.status(201).json({ message: 'Usuario registrado con éxito' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al iniciar sesión' });
+    console.error('❌ Error en register:', err.message);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validar
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+    }
+
+    // Buscar usuario
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error || !user) {
+      return res.status(400).json({ message: 'Usuario o contraseña inválidos' });
+    }
+
+    // Validar contraseña
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ message: 'Usuario o contraseña inválidos' });
+    }
+
+    res.status(200).json({ message: 'Login exitoso', user: { id: user.id, email: user.email } });
+  } catch (err) {
+    console.error('❌ Error en login:', err.message);
+    res.status(500).json({ message: 'Error en el servidor' });
   }
 };
