@@ -1,16 +1,25 @@
-import jwt from 'jsonwebtoken';
-const JWT_SECRET = process.env.JWT_SECRET;
+import { supabase } from "../db.js";
 
-export const authMiddleware = (req, res, next) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No autorizado' });
-
-  const token = auth.split(' ')[1];
+export const authenticate = async (req, res, next) => {
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.userId = payload.userId;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: "Token no proporcionado" });
+    }
+
+    const token = authHeader.split(" ")[1]; // Bearer <token>
+
+    // Obtener usuario desde el token
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data.user) {
+      return res.status(401).json({ error: "Token inválido o expirado" });
+    }
+
+    req.user = data.user; // guardamos el usuario en la request
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Token inválido' });
+    res.status(401).json({ error: err.message });
   }
 };

@@ -1,72 +1,67 @@
-import supabase from '../db.js';
-import bcrypt from 'bcryptjs';
+import { supabase } from '../db.js';
 
+// Registro de usuario
 export const register = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validar
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
-    }
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-    // Verificar si existe usuario
-    const { data: existingUser, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
-    }
-
-    // Hashear contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Crear usuario
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert([{ email, password: hashedPassword }]);
-
-    if (insertError) throw insertError;
-
-    res.status(201).json({ message: 'Usuario registrado con éxito' });
+    if (error) throw error;
+    res.json({ message: "✅ Usuario registrado", user: data.user });
   } catch (err) {
-    console.error('❌ Error en register:', err.message);
-    res.status(500).json({ message: 'Error en el servidor' });
+    res.status(400).json({ error: err.message });
   }
 };
 
+// Login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validar
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
-    }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    // Buscar usuario
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    if (error) throw error;
 
-    if (error || !user) {
-      return res.status(400).json({ message: 'Usuario o contraseña inválidos' });
-    }
-
-    // Validar contraseña
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(400).json({ message: 'Usuario o contraseña inválidos' });
-    }
-
-    res.status(200).json({ message: 'Login exitoso', user: { id: user.id, email: user.email } });
+    res.json({
+      message: "✅ Login exitoso",
+      user: data.user,
+      session: data.session,
+    });
   } catch (err) {
-    console.error('❌ Error en login:', err.message);
-    res.status(500).json({ message: 'Error en el servidor' });
+    res.status(400).json({ error: err.message });
+  }
+};
+
+// Perfil del usuario autenticado
+export const getProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "Token no proporcionado" });
+    }
+
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error) throw error;
+    res.json(data.user);
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
+};
+
+// Logout
+export const logout = async (req, res) => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+
+    res.json({ message: "✅ Logout exitoso" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
