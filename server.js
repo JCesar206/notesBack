@@ -24,6 +24,6 @@ app.use("/api/notes", notesRoutes);
 
 // health
 app.get("/health", (req, res) => res.json({ ok: true }));
-
+// server main
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Servidor corriendo en: ${PORT}`));
