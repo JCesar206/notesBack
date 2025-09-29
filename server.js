@@ -1,12 +1,14 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import db from "./db.js";
 import authRoutes from "./routes/auth.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
+import dotenv from "dotenv";
+import db from "./db.js";
 
 dotenv.config();
+
 const app = express();
+
 // Middleware para JSON
 app.use(express.json());
 
@@ -23,10 +25,10 @@ app.use(cors({
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 
-// Conexión con DB
+// Conexión a DB
 db.getConnection((err) => {
   if (err) {
-    console.error("Error connecting to DB", err);
+    console.error("Error connecting to DB:", err);
   } else {
     console.log("Connected to MySQL database");
   }
