@@ -1,16 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
 
-dotenv.config(); // solo hace efecto en local con .env
-
-// Usar variables de entorno para producción (Render) y local...
-const supabaseUrl = process.env.SUPABASE_URL || 'https://jeoejvyvnigzkedlzsev.supabase.co';
+// Lee variables de entorno
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
+// Verificación
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("❌ No se encontraron las credenciales de Supabase. Verifica tus variables de entorno.");
+  console.error("❌ Variables de entorno actuales:", {
+    SUPABASE_URL: supabaseUrl,
+    SUPABASE_KEY: supabaseKey ? "✅ definida" : "❌ vacía"
+  });
+  throw new Error("❌ No se encontraron las credenciales de Supabase. Verifica tus variables de entorno en Render.");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Cliente supabase listo
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log("✅ Conexión a Supabase lista:", supabaseUrl);
+export default supabase;
