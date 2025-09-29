@@ -1,32 +1,29 @@
-import express from 'express'; // Server main...
-import cors from 'cors';
-import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes.js';
-import notesRoutes from './routes/notes.routes.js';
-import db from './config/db.js';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import authRoutes from "./routes/auth.routes.js";
+import notesRoutes from "./routes/notes.routes.js";
 
 dotenv.config();
-
 const app = express();
 
-// Middlewares
-app.use(cors());
+const whitelist = [process.env.FRONTEND_URL];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow Postman / server-to-server
+    if (whitelist.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS denied"));
+  }
+}));
+
 app.use(express.json());
 
 // Rutas
-app.use('/api/auth', authRoutes);
-app.use('/api/notes', notesRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/notes", notesRoutes);
 
-// Verificación DB
-db.getConnection()
-  .then(conn => {
-    console.log('✅ Conexión establecida con MySQL');
-    conn.release();
-  })
-  .catch(err => console.error('❌ Error conectando a MySQL:', err));
+// health
+app.get("/health", (req, res) => res.json({ ok: true }));
 
-// Servidor
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en https://notesback-tb4o.onrender.com/api/auth/register/${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Servidor corriendo en: ${PORT}`));

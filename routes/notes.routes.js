@@ -1,12 +1,12 @@
-import express from 'express'; // Acceso a las notas del usuario...
-import { createNote, getNotes, updateNote, deleteNote } from '../controllers/notesController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { Router } from "express";
+import { createNote, getNotes, updateNote, deleteNote } from "../controllers/notes.controller.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post('/', authMiddleware, createNote);
-router.get('/', authMiddleware, getNotes);
-router.put('/:id', authMiddleware, updateNote);
-router.delete('/:id', authMiddleware, deleteNote);
+router.get("/", authMiddleware, getNotes);
+router.post("/", authMiddleware, createNote);
+router.put("/:id", authMiddleware, updateNote);
+router.delete("/:id", authMiddleware, deleteNote);
 
 export default router;

@@ -1,21 +1,21 @@
--- Crear tabla de usuarios
+-- init.sql
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) NOT NULL UNIQUE,
   email VARCHAR(150) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla de notas
 CREATE TABLE IF NOT EXISTS notes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   title VARCHAR(255) NOT NULL,
   content TEXT,
   category VARCHAR(100),
-  favorite BOOLEAN DEFAULT FALSE,
-  completed BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  favorite TINYINT(1) DEFAULT 0,
+  completed TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_id ON notes(user_id);
+CREATE INDEX IF NOT EXISTS idx_email ON users(email);
