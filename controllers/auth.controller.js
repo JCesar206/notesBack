@@ -1,6 +1,6 @@
 import { supabase } from '../db.js';
 
-// Registro de usuario..
+// Registro de usuario
 export const register = async (req, res) => {
   try {
     const { email, password } = req.body;
