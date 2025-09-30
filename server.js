@@ -4,13 +4,19 @@ import authRoutes from "./routes/auth.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use("/api/auth", authRoutes);
-app.use("/api/notes", notesRoutes);
+app.use("/auth", authRoutes);
+app.use("/notes", notesRoutes);
 
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Ruta de prueba
+app.get("/", (req, res) => {
+  res.send("✅ API funcionando en Render + Supabase");
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
