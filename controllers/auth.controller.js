@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import { db } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+=======
+import jwt from "jsonwebtoken"; // Control con autorización
+>>>>>>> feature/update-back
 import bcrypt from "bcryptjs";
 import { supabase } from "../db.js";
 
