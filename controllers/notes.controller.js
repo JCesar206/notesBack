@@ -1,6 +1,6 @@
 import { supabase } from "../db.js";
 
-// Obtener notas
+// Obtener notas de la db
 export const getNotes = async (req, res) => {
   const { data, error } = await supabase.from("notes").select("*");
   if (error) return res.status(500).json({ error: error.message });

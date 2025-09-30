@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from "express"; // Notas
 import { getNotes, addNote, updateNote, deleteNote } from "../controllers/notes.controller.js";
 
 const router = Router();
