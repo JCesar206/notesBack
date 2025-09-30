@@ -1,8 +1,9 @@
-import { Router } from "express"; // Autorizacion rutas
+import { Router } from "express";
 import { register, login } from "../controllers/auth.controller.js";
 
 const router = Router();
 
+// Rutas de autenticación
 router.post("/register", register);
 router.post("/login", login);
 
