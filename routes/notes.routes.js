@@ -1,10 +1,10 @@
-import express from "express";
+import { Router } from "express";
 import { getNotes, addNote, updateNote, deleteNote } from "../controllers/notes.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-router.use(authMiddleware);
+router.use(authMiddleware); // todas las rutas protegidas
 
 router.get("/", getNotes);
 router.post("/", addNote);

@@ -1,9 +1,13 @@
-import { db } from "../db.js";
+import { supabase } from "../db.js";
 
 export const getNotes = async (req, res) => {
   try {
-    const [notes] = await db.query("SELECT * FROM notes WHERE user_id = ?", [req.user.id]);
-    res.json(notes);
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", req.user.id);
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al obtener notas" });
@@ -13,11 +17,16 @@ export const getNotes = async (req, res) => {
 export const addNote = async (req, res) => {
   const { title, content, category, favorite, completed } = req.body;
   try {
-    await db.query(
-      "INSERT INTO notes (user_id, title, content, category, favorite, completed) VALUES (?, ?, ?, ?, ?, ?)",
-      [req.user.id, title, content, category, favorite, completed]
-    );
-    res.json({ message: "Nota agregada" });
+    const { data, error } = await supabase.from("notes").insert([{
+      user_id: req.user.id,
+      title,
+      content,
+      category,
+      favorite,
+      completed
+    }]);
+    if (error) throw error;
+    res.json({ message: "Nota agregada", note: data[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al agregar nota" });
@@ -25,12 +34,16 @@ export const addNote = async (req, res) => {
 };
 
 export const updateNote = async (req, res) => {
+  const { id } = req.params;
   const { title, content, category, favorite, completed } = req.body;
   try {
-    await db.query(
-      "UPDATE notes SET title=?, content=?, category=?, favorite=?, completed=? WHERE id=? AND user_id=?",
-      [title, content, category, favorite, completed, req.params.id, req.user.id]
-    );
+    const { data, error } = await supabase
+      .from("notes")
+      .update({ title, content, category, favorite, completed })
+      .eq("id", id)
+      .eq("user_id", req.user.id);
+
+    if (error) throw error;
     res.json({ message: "Nota actualizada" });
   } catch (err) {
     console.error(err);
@@ -40,7 +53,13 @@ export const updateNote = async (req, res) => {
 
 export const deleteNote = async (req, res) => {
   try {
-    await db.query("DELETE FROM notes WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
+    const { error } = await supabase
+      .from("notes")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", req.user.id);
+
+    if (error) throw error;
     res.json({ message: "Nota eliminada" });
   } catch (err) {
     console.error(err);
