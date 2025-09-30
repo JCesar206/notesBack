@@ -14,7 +14,7 @@ export const authMiddleware = (req, res, next) => {
 
     // Verificamos el token con la secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // guardamos los datos en la request
+    req.user = decoded; // Guardamos los datos en la request
     next();
   } catch (err) {
     console.error("Error en authMiddleware:", err.message);
