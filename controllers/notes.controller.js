@@ -1,4 +1,4 @@
-import { supabase } from "../db.js";
+import { supabase } from "./db.js";
 
 export const getNotes = async (req, res) => {
   try {
@@ -6,64 +6,65 @@ export const getNotes = async (req, res) => {
       .from("notes")
       .select("*")
       .eq("user_id", req.user.id);
-    if (error) throw error;
+
+    if (error) return res.status(400).json({ error: error.message });
     res.json(data);
   } catch (err) {
-    console.error("Error en getNotes:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener notas" });
   }
 };
 
 export const addNote = async (req, res) => {
-  const { title, content, category, favorite, completed } = req.body;
   try {
-    const { data, error } = await supabase.from("notes").insert([{
-      user_id: req.user.id,
-      title,
-      content,
-      category,
-      favorite,
-      completed
-    }]);
-    if (error) throw error;
-    res.json({ message: "Nota agregada", note: data[0] });
+    const { title, content, category, favorite, completed } = req.body;
+    const { data, error } = await supabase
+      .from("notes")
+      .insert([{ title, content, category, favorite, completed, user_id: req.user.id }])
+      .select();
+
+    if (error) return res.status(400).json({ error: error.message });
+    res.json(data[0]);
   } catch (err) {
-    console.error("Error en addNote:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Error al agregar nota" });
   }
 };
 
 export const updateNote = async (req, res) => {
-  const { id } = req.params;
-  const { title, content, category, favorite, completed } = req.body;
   try {
+    const { id } = req.params;
+    const { title, content, category, favorite, completed } = req.body;
+
     const { data, error } = await supabase
       .from("notes")
       .update({ title, content, category, favorite, completed })
       .eq("id", id)
-      .eq("user_id", req.user.id);
+      .eq("user_id", req.user.id)
+      .select();
 
-    if (error) throw error;
-    res.json({ message: "Nota actualizada" });
+    if (error) return res.status(400).json({ error: error.message });
+    res.json(data[0]);
   } catch (err) {
-    console.error("Error en updateNote:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Error al actualizar nota" });
   }
 };
 
 export const deleteNote = async (req, res) => {
-  const { id } = req.params;
   try {
-    const { error } = await supabase
+    const { id } = req.params;
+    const { data, error } = await supabase
       .from("notes")
       .delete()
       .eq("id", id)
-      .eq("user_id", req.user.id);
+      .eq("user_id", req.user.id)
+      .select();
 
-    if (error) throw error;
+    if (error) return res.status(400).json({ error: error.message });
     res.json({ message: "Nota eliminada" });
   } catch (err) {
-    console.error("Error en deleteNote:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Error al eliminar nota" });
   }
 };
