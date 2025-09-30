@@ -1,22 +1,32 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+
 import authRoutes from "./routes/auth.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
 
+dotenv.config();
+
 const app = express();
-app.use(cors());
+
+// ✅ Configuración de CORS
+app.use(
+  cors({
+    origin: ["https://jcesar206.github.io"], // tu frontend en GitHub Pages
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Middlewares
 app.use(express.json());
 
-// ✅ Prefijo API en todas las rutas
+// Rutas con prefijo /api
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 
-// Ruta base para verificar que el server está corriendo
-app.get("/", (req, res) => {
-  res.send("✅ API funcionando en Render + Supabase con prefijo /api");
-});
-
+// Arranque del servidor
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`✅🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
