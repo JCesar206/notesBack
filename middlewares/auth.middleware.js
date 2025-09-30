@@ -8,7 +8,7 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: "Token no proporcionado" });
     }
 
-    const token = authHeader.split(" ")[1]; // Bearer <token>
+    const token = authHeader.split(" ")[1]; // Bearer <token>..
 
     // Obtener usuario desde el token
     const { data, error } = await supabase.auth.getUser(token);

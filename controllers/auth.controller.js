@@ -1,67 +1,37 @@
-import { supabase } from '../db.js';
+import { supabase } from "../db.js";
 
-// Registro de usuario
+// Registrar usuario en db..
 export const register = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const { data, error } = await supabase.auth.signUp({ email, password });
-
-    if (error) throw error;
-    res.json({ message: "✅ Usuario registrado", user: data.user });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email y password requeridos" });
   }
+
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{ email, password }])
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json({ user: data[0] });
 };
 
-// Login
+// Login usuario
 export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    res.json({
-      message: "✅ Login exitoso",
-      user: data.user,
-      session: data.session,
-    });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email y password requeridos" });
   }
-};
 
-// Perfil del usuario autenticado
-export const getProfile = async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password);
 
-    if (!token) {
-      return res.status(401).json({ error: "Token no proporcionado" });
-    }
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data || data.length === 0)
+    return res.status(401).json({ error: "Credenciales inválidas" });
 
-    const { data, error } = await supabase.auth.getUser(token);
-
-    if (error) throw error;
-    res.json(data.user);
-  } catch (err) {
-    res.status(401).json({ error: err.message });
-  }
-};
-
-// Logout
-export const logout = async (req, res) => {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-
-    res.json({ message: "✅ Logout exitoso" });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+  res.json({ message: "Login exitoso", user: data[0] });
 };
