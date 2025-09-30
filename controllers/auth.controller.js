@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"; // Control con autorización
 import bcrypt from "bcryptjs";
 import { supabase } from "../db.js";
 
