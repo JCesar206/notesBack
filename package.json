@@ -2,15 +2,10 @@
   "name": "notes-backend",
   "version": "1.0.0",
   "type": "module",
-<<<<<<< HEAD
-=======
-  "main": "src/server.js",
->>>>>>> feature/update-back
   "scripts": {
     "start": "node src/server.js"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@supabase/supabase-js": "^2.58.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -18,14 +13,5 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.5.0"
-=======
-    "@supabase/supabase-js": "^2.32.0",
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "jsonwebtoken": "^9.0.0",
-    "mysql2": "^3.5.0",
-    "bcrypt": "^6.0.0"
->>>>>>> feature/update-back
   }
 }
