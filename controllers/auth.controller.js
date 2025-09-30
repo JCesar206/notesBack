@@ -1,7 +1,10 @@
 import { db } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { supabase } from "../db.js";
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
   const { email, password } = req.body;
