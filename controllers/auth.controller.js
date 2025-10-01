@@ -1,36 +1,39 @@
-import { supabase } from "../db.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { db } from '../db.js';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error("❌ Debes definir JWT_SECRET en las variables de entorno.");
+
+export const register = async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Email y password son requeridos" });
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const { data, error } = await db.from('users').insert([{ email, password: hashedPassword }]);
+    if (error) return res.status(400).json({ error: error.message });
+
+    res.json({ message: "Usuario registrado correctamente" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Email y password son requeridos" });
 
   try {
-    // Buscar usuario
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
+    const { data, error } = await db.from('users').select('*').eq('email', email).single();
+    if (error || !data) return res.status(400).json({ error: "Credenciales inválidas" });
 
-    if (error || !user) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
-    }
+    const valid = await bcrypt.compare(password, data.password);
+    if (!valid) return res.status(400).json({ error: "Credenciales inválidas" });
 
-    // Comparar password
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      return res.status(400).json({ error: "Credenciales inválidas" });
-    }
-
-    // Generar token
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    return res.json({ token });
+    const token = jwt.sign({ userId: data.id }, JWT_SECRET, { expiresIn: '1d' });
+    res.json({ token });
   } catch (err) {
-    console.error("Error en login:", err);
-    return res.status(500).json({ error: "Error en el servidor" });
+    res.status(500).json({ error: err.message });
   }
 };
