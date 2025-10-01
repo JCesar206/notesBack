@@ -1,17 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import notesRoutes from './routes/notes.routes.js';
+import dotenv from 'dotenv';
 
 dotenv.config();
-const app = express();
 
-app.use(cors({
-  origin: 'https://jcesar206.github.io/notesFront', // URL de tu frontend
-  methods: 'GET,POST,PUT,DELETE',
-  allowedHeaders: 'Content-Type,Authorization'
-}));
+const app = express();
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
