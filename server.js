@@ -1,26 +1,18 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-import authRoutes from './routes/auth.routes.js';
-import notesRoutes from './routes/notes.routes.js';
+import authRoutes from './src/routes/auth.routes.js';
+import notesRoutes from './src/routes/notes.routes.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: '*' })); // permitir front
 app.use(express.json());
 
-// Prefijo /api para separar del front
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Backend Notes API funcionando ✅');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
