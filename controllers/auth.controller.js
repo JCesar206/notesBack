@@ -1,32 +1,53 @@
-// src/controllers/auth.controller.js
-import { supabase } from '../db.js';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_secreto_jwt';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { supabase } from "../db.js";
 
 export const register = async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return res.status(400).json({ error: "Email y contraseña son requeridos" });
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // insertar usuario
+    const { data, error } = await supabase
+      .from("users")
+      .insert([{ email, password: hashedPassword }])
+      .select()
+      .single();
+
     if (error) return res.status(400).json({ error: error.message });
 
-    res.status(201).json({ message: 'Usuario registrado', user: data.user });
+    res.status(201).json({ message: "Usuario registrado", user: data });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error en registro' });
+    res.status(500).json({ error: err.message });
   }
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return res.status(401).json({ error: error.message });
+    const { email, password } = req.body;
 
-    const token = jwt.sign({ id: data.user.id, email: data.user.email }, JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token, user: data.user });
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (error || !user) return res.status(400).json({ error: "Usuario no encontrado" });
+
+    const validPass = await bcrypt.compare(password, user.password);
+    if (!validPass) return res.status(401).json({ error: "Contraseña incorrecta" });
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({ token });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error en login' });
+    res.status(500).json({ error: err.message });
   }
 };

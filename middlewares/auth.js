@@ -1,3 +1,4 @@
+/* 
 const jwt = require('jsonwebtoken');  // Validar autorizaciones..
 const db = require('../db');
 const secret = process.env.JWT_SECRET || 'secret_dev';
@@ -16,3 +17,4 @@ module.exports = function (req, res, next) {
     return res.status(401).json({ message: 'Token inválido' });
   }
 };
+*/
