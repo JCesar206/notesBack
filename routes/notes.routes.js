@@ -3,6 +3,11 @@ import { getNotes, addNote, updateNote, deleteNote } from '../controllers/notes.
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
+<<<<<<< HEAD
+=======
+
+router.use(authMiddleware);
+>>>>>>> feature/update-back
 
 router.use(authMiddleware); // protege todas las rutas de notas
 router.get("/", getNotes);

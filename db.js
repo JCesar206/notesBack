@@ -7,4 +7,4 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error("❌ No se encontraron las credenciales de Supabase. Verifica tus variables de entorno.");
 }
 
-export const db = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);

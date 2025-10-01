@@ -1,10 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/auth.routes.js';
 import notesRoutes from './routes/notes.routes.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 
