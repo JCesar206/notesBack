@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { supabase } from "../db.js";
+import { db } from "../db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
