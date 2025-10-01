@@ -2,68 +2,50 @@ import { supabase } from "../db/pool.js";
 
 export const getNotes = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('notes')
-      .select('*')
-      .eq('user_id', req.user.id);
-
-    if (error) throw error;
-    res.json(data);
+    const result = await pool.query("SELECT * FROM notes WHERE user_id=$1", [req.userId]);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al obtener notas" });
+    res.status(500).json({ error: "Failed to fetch notes" });
   }
 };
 
 export const addNote = async (req, res) => {
   const { title, content } = req.body;
-  if (!title || !content) return res.status(400).json({ error: "Título y contenido requeridos" });
-
   try {
-    const { error } = await supabase
-      .from('notes')
-      .insert([{ user_id: req.user.id, title, content }]);
-
-    if (error) throw error;
-    res.json({ message: "Nota agregada" });
+    const result = await pool.query(
+      "INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *",
+      [req.userId, title, content]
+    );
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al agregar nota" });
+    res.status(500).json({ error: "Failed to add note" });
   }
 };
 
 export const updateNote = async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
-
   try {
-    const { error } = await supabase
-      .from('notes')
-      .update({ title, content })
-      .eq('id', id)
-      .eq('user_id', req.user.id);
-
-    if (error) throw error;
-    res.json({ message: "Nota actualizada" });
+    const result = await pool.query(
+      "UPDATE notes SET title=$1, content=$2 WHERE id=$3 AND user_id=$4 RETURNING *",
+      [title, content, id, req.userId]
+    );
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al actualizar nota" });
+    res.status(500).json({ error: "Failed to update note" });
   }
 };
 
 export const deleteNote = async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase
-      .from('notes')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', req.user.id);
-
-    if (error) throw error;
-    res.json({ message: "Nota eliminada" });
+    await pool.query("DELETE FROM notes WHERE id=$1 AND user_id=$2", [id, req.userId]);
+    res.json({ message: "Note deleted" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al eliminar nota" });
+    res.status(500).json({ error: "Failed to delete note" });
   }
 };
