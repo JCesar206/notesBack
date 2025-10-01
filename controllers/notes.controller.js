@@ -1,47 +1,41 @@
 import { db } from '../db.js';
 
 export const getNotes = async (req, res) => {
-  try {
-    const { data, error } = await db.from('notes').select('*').eq('user_id', req.userId);
-    if (error) return res.status(400).json({ error: error.message });
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const { data, error } = await db.from('notes').select('*').eq('user_id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 };
 
 export const addNote = async (req, res) => {
-  const { title, content, category, favorite = false, completed = false } = req.body;
-  try {
-    const { data, error } = await db.from('notes').insert([{
-      user_id: req.userId, title, content, category, favorite, completed
-    }]).select();
-    if (error) return res.status(400).json({ error: error.message });
-    res.status(201).json(data[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const { title, content, category, favorite, completed } = req.body;
+  const { data, error } = await db.from('notes').insert({
+    user_id: req.user.id,
+    title, content, category, favorite, completed
+  }).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 };
 
 export const updateNote = async (req, res) => {
   const { id } = req.params;
   const { title, content, category, favorite, completed } = req.body;
-  try {
-    const { data, error } = await db.from('notes').update({ title, content, category, favorite, completed }).eq('id', id).eq('user_id', req.userId).select();
-    if (error) return res.status(400).json({ error: error.message });
-    res.json(data[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+
+  const { data, error } = await db.from('notes')
+    .update({ title, content, category, favorite, completed })
+    .eq('id', id)
+    .eq('user_id', req.user.id)
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 };
 
 export const deleteNote = async (req, res) => {
   const { id } = req.params;
-  try {
-    const { error } = await db.from('notes').delete().eq('id', id).eq('user_id', req.userId);
-    if (error) return res.status(400).json({ error: error.message });
-    res.json({ message: 'Note deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const { error } = await db.from('notes')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ message: "Nota eliminada" });
 };
