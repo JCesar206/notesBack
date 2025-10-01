@@ -1,50 +1,32 @@
-import { db } from '../db.js'; // Revisar este punto
+// src/controllers/auth.controller.js
+import { supabase } from '../db.js';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'tu_secreto_jwt';
 
 export const register = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return res.status(400).json({ error: error.message });
 
-    const { data: existingUser } = await db
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (existingUser) return res.status(400).json({ error: 'Usuario ya existe' });
-
-    const { error } = await db.from('users').insert([{ email, password }]);
-    if (error) throw error;
-
-    res.json({ message: 'Registro exitoso' });
+    res.status(201).json({ message: 'Usuario registrado', user: data.user });
   } catch (err) {
-    console.error('Error en register:', err.message);
-    res.status(500).json({ error: 'Error al registrar usuario' });
+    console.error(err);
+    res.status(500).json({ error: 'Error en registro' });
   }
 };
 
 export const login = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return res.status(401).json({ error: error.message });
 
-    const { data: user } = await db
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .eq('password', password)
-      .single();
-
-    if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
-
-    res.json({ token });
+    const token = jwt.sign({ id: data.user.id, email: data.user.email }, JWT_SECRET, { expiresIn: '1d' });
+    res.json({ token, user: data.user });
   } catch (err) {
-    console.error('Error en login:', err.message);
-    res.status(500).json({ error: 'Error al iniciar sesión' });
+    console.error(err);
+    res.status(500).json({ error: 'Error en login' });
   }
 };
