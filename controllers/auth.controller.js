@@ -1,4 +1,4 @@
-import { db } from '../db.js';
+import { db } from '../db.js'; // Revisar este punto
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
