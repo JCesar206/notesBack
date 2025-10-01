@@ -1,32 +1,41 @@
+// src/controllers/auth.controller.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { supabase } from "../db.js";
 
+// Registro
 export const register = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password)
-      return res.status(400).json({ error: "Email y contraseña son requeridos" });
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
 
-    // hash password
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // insertar usuario
     const { data, error } = await supabase
       .from("users")
       .insert([{ email, password: hashedPassword }])
       .select()
       .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    res.status(201).json({ message: "Usuario registrado", user: data });
+    res.json({ message: "User registered", user: data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Register error:", err);
+    res.status(500).json({ message: "Error registering user" });
   }
 };
 
+// Login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -37,17 +46,24 @@ export const login = async (req, res) => {
       .eq("email", email)
       .single();
 
-    if (error || !user) return res.status(400).json({ error: "Usuario no encontrado" });
+    if (error || !user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const validPass = await bcrypt.compare(password, user.password);
-    if (!validPass) return res.status(401).json({ error: "Contraseña incorrecta" });
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Error logging in" });
   }
 };

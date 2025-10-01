@@ -1,37 +1,39 @@
 // src/controllers/notes.controller.js
+import { supabase } from "../db.js";
+
+// Obtener notas
 export const getNotes = async (req, res) => {
   try {
-    // user viene del token
-    const userId = req.user.id;
-
-    // ejemplo usando supabase
-    const { data, error } = await req.db
+    const { data, error } = await supabase
       .from("notes")
       .select("*")
-      .eq("user_id", userId);
+      .eq("user_id", req.user.id);
 
     if (error) throw error;
+
     res.json(data);
   } catch (err) {
-    console.error("Error fetching notes:", err);
+    console.error("Get notes error:", err);
     res.status(500).json({ message: "Error fetching notes" });
   }
 };
 
-export const createNote = async (req, res) => {
+// Crear nota
+export const addNote = async (req, res) => {
   try {
-    const userId = req.user.id;
     const { title, content } = req.body;
 
-    const { data, error } = await req.db
+    const { data, error } = await supabase
       .from("notes")
-      .insert([{ title, content, user_id: userId }])
-      .select();
+      .insert([{ title, content, user_id: req.user.id }])
+      .select()
+      .single();
 
     if (error) throw error;
-    res.json(data[0]);
+
+    res.json(data);
   } catch (err) {
-    console.error("Error creating note:", err);
+    console.error("Add note error:", err);
     res.status(500).json({ message: "Error creating note" });
   }
 };
