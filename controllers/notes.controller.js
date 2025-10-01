@@ -4,7 +4,11 @@ import { supabase } from "../db.js";
 // Obtener notas
 export const getNotes = async (req, res) => {
   try {
-    const { data, error } = await db.from('notes').select('*').eq('user_id', req.user.id);
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", req.user.id);
+
     if (error) throw error;
 
     res.json(data);
@@ -17,52 +21,17 @@ export const getNotes = async (req, res) => {
 // Crear nota
 export const addNote = async (req, res) => {
   try {
-    const { title, content, category, favorite, completed } = req.body;
-    const { error } = await db.from('notes').insert([{
-      user_id: req.user.id,
-      title,
-      content,
-      category,
-      favorite,
-      completed
-    }]);
-    if (error) throw error;
-    res.json({ message: 'Nota agregada' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error agregando nota' });
-  }
-};
+    const { title, content } = req.body;
 
-export const updateNote = async (req, res) => {
-  const { id } = req.params;
-  const { title, content, category, favorite, completed } = req.body;
-  try {
-    const { id } = req.params;
-    const { title, content, category, favorite, completed } = req.body;
-
-    const { error } = await db.from('notes')
-      .update({ title, content, category, favorite, completed })
-      .eq('id', id)
-      .eq('user_id', req.user.id);
+    const { data, error } = await supabase
+      .from("notes")
+      .insert([{ title, content, user_id: req.user.id }])
+      .select()
+      .single();
 
     if (error) throw error;
-    res.json({ message: 'Nota actualizada' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error actualizando nota' });
-  }
-};
 
-export const deleteNote = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { error } = await db.from('notes')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', req.user.id);
-    if (error) throw error;
-    res.json({ message: 'Nota eliminada' });
+    res.json(data);
   } catch (err) {
     console.error("Add note error:", err);
     res.status(500).json({ message: "Error creating note" });
