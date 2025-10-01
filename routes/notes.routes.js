@@ -1,7 +1,7 @@
 // src/routes/notes.routes.js
 import { Router } from "express";
+import { getNotes, addNote } from "../controllers/notes.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { getNotes, createNote } from "../controllers/notes.controller.js";
 
 const router = Router();
 

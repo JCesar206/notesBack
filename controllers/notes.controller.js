@@ -1,16 +1,21 @@
 // src/controllers/notes.controller.js
+import { supabase } from "../db.js";
+
+// Obtener notas
 export const getNotes = async (req, res) => {
   try {
     const { data, error } = await db.from('notes').select('*').eq('user_id', req.user.id);
     if (error) throw error;
+
     res.json(data);
   } catch (err) {
-    console.error("Error fetching notes:", err);
+    console.error("Get notes error:", err);
     res.status(500).json({ message: "Error fetching notes" });
   }
 };
 
-export const createNote = async (req, res) => {
+// Crear nota
+export const addNote = async (req, res) => {
   try {
     const { title, content, category, favorite, completed } = req.body;
     const { error } = await db.from('notes').insert([{
@@ -59,7 +64,7 @@ export const deleteNote = async (req, res) => {
     if (error) throw error;
     res.json({ message: 'Nota eliminada' });
   } catch (err) {
-    console.error("Error creating note:", err);
+    console.error("Add note error:", err);
     res.status(500).json({ message: "Error creating note" });
   }
 };
