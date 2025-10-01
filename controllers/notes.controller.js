@@ -1,4 +1,4 @@
-import { supabase } from "../db.js";
+import { supabase } from "../db/pool.js";
 
 export const getNotes = async (req, res) => {
   try {
