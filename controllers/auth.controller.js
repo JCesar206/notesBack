@@ -1,5 +1,5 @@
-import { supabase } from "../db/pool.js";
-import bcrypt from "bcryptjs";
+import { pool } from "../db/pool.js";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
