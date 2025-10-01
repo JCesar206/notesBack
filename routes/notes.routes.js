@@ -1,15 +1,12 @@
 // src/routes/notes.routes.js
-import express from 'express';
-import { getNotes, addNote, updateNote, deleteNote } from '../controllers/notes.controller.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { getNotes, createNote } from "../controllers/notes.controller.js";
 
-const router = express.Router();
+const router = Router();
 
-router.use(authMiddleware);
-
-router.get('/', getNotes);
-router.post('/', addNote);
-router.put('/:id', updateNote);
-router.delete('/:id', deleteNote);
+// todas las rutas de notas requieren token
+router.get("/", authMiddleware, getNotes);
+router.post("/", authMiddleware, createNote);
 
 export default router;
