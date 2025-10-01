@@ -1,69 +1,61 @@
-// src/controllers/auth.controller.js
+import { supabase } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { supabase } from "../db.js";
+import dotenv from "dotenv";
 
-// Registro
+dotenv.config();
+const JWT_SECRET = process.env.JWT_SECRET;
+
 export const register = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Email y password requeridos" });
 
-    const { data: existingUser } = await supabase
+  try {
+    // Verificar si el usuario ya existe
+    const { data: existing, error: existError } = await supabase
       .from("users")
       .select("*")
       .eq("email", email)
       .single();
 
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (existing) return res.status(400).json({ error: "Usuario ya existe" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data, error } = await supabase
       .from("users")
       .insert([{ email, password: hashedPassword }])
-      .select()
-      .single();
+      .select();
 
     if (error) throw error;
 
-    res.json({ message: "User registered", user: data });
+    res.status(201).json({ message: "Usuario creado correctamente" });
   } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ message: "Error registering user" });
+    console.error(err);
+    res.status(500).json({ error: "Error al registrar usuario" });
   }
 };
 
-// Login
 export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Email y password requeridos" });
 
+  try {
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
       .eq("email", email)
       .single();
 
-    if (error || !user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    if (error || !user) return res.status(400).json({ error: "Credenciales inválidas" });
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ error: "Credenciales inválidas" });
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1d" });
     res.json({ token });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Error logging in" });
+    console.error(err);
+    res.status(500).json({ error: "Error en login" });
   }
 };
