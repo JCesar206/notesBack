@@ -1,41 +1,48 @@
-import { db } from '../db.js';
+import { supabase } from '../db.js';
 
 export const getNotes = async (req, res) => {
-  const { data, error } = await db.from('notes').select('*').eq('user_id', req.user.id);
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('user_id', req.user.id);
+
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 };
 
 export const addNote = async (req, res) => {
   const { title, content, category, favorite, completed } = req.body;
-  const { data, error } = await db.from('notes').insert({
-    user_id: req.user.id,
-    title, content, category, favorite, completed
-  }).select().single();
+  const { data, error } = await supabase
+    .from('notes')
+    .insert([{ title, content, category, favorite, completed, user_id: req.user.id }]);
+
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  res.json(data[0]);
 };
 
 export const updateNote = async (req, res) => {
   const { id } = req.params;
   const { title, content, category, favorite, completed } = req.body;
 
-  const { data, error } = await db.from('notes')
+  const { data, error } = await supabase
+    .from('notes')
     .update({ title, content, category, favorite, completed })
     .eq('id', id)
-    .eq('user_id', req.user.id)
-    .select()
-    .single();
+    .eq('user_id', req.user.id);
+
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  res.json(data[0]);
 };
 
 export const deleteNote = async (req, res) => {
   const { id } = req.params;
-  const { error } = await db.from('notes')
+
+  const { data, error } = await supabase
+    .from('notes')
     .delete()
     .eq('id', id)
     .eq('user_id', req.user.id);
+
   if (error) return res.status(500).json({ error: error.message });
-  res.json({ message: "Nota eliminada" });
+  res.json({ success: true });
 };

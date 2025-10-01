@@ -1,16 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/auth.routes.js';
 import notesRoutes from './routes/notes.routes.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: 'https://jcesar206.github.io/notesFront' })); // Cambiar origin a tu front en producción
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 
 const PORT = process.env.PORT || 5000;
