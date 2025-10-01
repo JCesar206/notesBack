@@ -1,67 +1,50 @@
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import { supabase } from "./db.js";
+import { db } from '../db.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Faltan datos" });
-
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const { data, error } = await supabase
-      .from("users")
-      .insert([{ email, password: hashedPassword }])
-      .select();
+    const { email, password } = req.body;
 
-    if (error) return res.status(400).json({ error: error.message });
-    res.json({ message: "Usuario registrado", user: data[0] });
+    const { data: existingUser } = await db
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) return res.status(400).json({ error: 'Usuario ya existe' });
+
+    const { error } = await db.from('users').insert([{ email, password }]);
+    if (error) throw error;
+
+    res.json({ message: 'Registro exitoso' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al registrar usuario" });
+    console.error('Error en register:', err.message);
+    res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Faltan datos" });
-
   try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
+    const { email, password } = req.body;
+
+    const { data: user } = await db
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
       .single();
 
-    if (error || !data) return res.status(401).json({ error: "Usuario no encontrado" });
+    if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
 
-    const isMatch = await bcrypt.compare(password, data.password);
-    if (!isMatch) return res.status(401).json({ error: "Contraseña incorrecta" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
 
-    const token = jwt.sign({ id: data.id, email: data.email }, JWT_SECRET, { expiresIn: "7d" });
-    res.json({ token, user: { id: data.id, email: data.email } });
+    res.json({ token });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al iniciar sesión" });
-  }
-};
-
-export const forgotPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
-  if (!email || !newPassword) return res.status(400).json({ error: "Faltan datos" });
-
-  try {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const { data, error } = await supabase
-      .from("users")
-      .update({ password: hashedPassword })
-      .eq("email", email);
-
-    if (error) return res.status(400).json({ error: error.message });
-    res.json({ message: "Contraseña actualizada" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al actualizar la contraseña" });
+    console.error('Error en login:', err.message);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
