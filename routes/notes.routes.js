@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getNotes, addNote, updateNote, deleteNote } from "../controllers/notes.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 

@@ -39,8 +39,6 @@ export const seed = async () => {
         [email, passwordHash]
       );
       console.log("✅ Usuario de prueba insertado");
-    } else {
-      console.log("ℹ️ Usuario de prueba ya existía");
     }
 
     // Nota de prueba
@@ -55,8 +53,6 @@ export const seed = async () => {
         [userId, "Nota de prueba", "Contenido inicial", "General", "📝", true, false]
       );
       console.log("✅ Nota de prueba insertada");
-    } else {
-      console.log("ℹ️ Nota de prueba ya existía");
     }
 
   } catch (err) {
