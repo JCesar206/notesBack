@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 const router = Router();
 
-// Middleware de auth
+// Middleware de auth (mover antes de usarlo)
 const authMiddleware = (req, res, next) => {
   const header = req.headers["authorization"];
   if (!header) return res.status(401).json({ error: "Token requerido" });
@@ -21,6 +21,7 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+// Ahora ya podemos proteger todas las rutas
 router.use(authMiddleware);
 
 router.get("/", getNotes);
