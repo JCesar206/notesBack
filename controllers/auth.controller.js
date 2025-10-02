@@ -1,10 +1,12 @@
+// controllers/auth.controller.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { pool } from "../db.js";
+import { pool } from "../db.js";  // Asegúrate que este archivo existe en src/db.js
 
+// Registro
 export const register = async (req, res) => {
   try {
-    console.log("📥 Datos recibidos en register:", req.body);
+    console.log("📥 Datos recibidos en REGISTER:", req.body);
 
     const { email, password } = req.body;
     if (!email || !password) {
@@ -20,17 +22,18 @@ export const register = async (req, res) => {
     );
 
     console.log("✅ Usuario creado:", result.rows[0]);
-
     res.json({ message: "Usuario registrado", user: result.rows[0] });
+
   } catch (error) {
-    console.error("❌ Error en register:", error.message);
+    console.error("❌ Error en REGISTER:", error.message);
     res.status(500).json({ error: "Error en el servidor" });
   }
 };
 
+// Login
 export const login = async (req, res) => {
   try {
-    console.log("📥 Datos recibidos en login:", req.body);
+    console.log("📥 Datos recibidos en LOGIN:", req.body);
 
     const { email, password } = req.body;
     if (!email || !password) {
@@ -53,11 +56,12 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    console.log("✅ Login exitoso, token generado");
+    console.log("✅ Login exitoso, token generado:", token);
 
     res.json({ token });
+
   } catch (error) {
-    console.error("❌ Error en login:", error.message);
+    console.error("❌ Error en LOGIN:", error.message);
     res.status(500).json({ error: "Error en el servidor" });
   }
 };
