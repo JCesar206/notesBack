@@ -12,8 +12,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 
-// Ejecutar seed antes de levantar el server
+// Ejecutar seed antes de levantar server
 seed().then(() => {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 Server corriendo en puerto ${PORT}`));
 });

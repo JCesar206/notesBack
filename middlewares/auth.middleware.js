@@ -1,3 +1,4 @@
+/*
 import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {
@@ -15,3 +16,4 @@ export const authMiddleware = (req, res, next) => {
     return res.status(401).json({ error: "Token no válido" });
   }
 };
+*/
