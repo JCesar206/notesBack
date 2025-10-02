@@ -57,7 +57,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer <TOKEN_AQUI>"
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzU5NDI4NTM1LCJleHAiOjE3NTk0MzIxMzV9.qknmzCoEF86QFc16NOeTrHkrS866Mn4hOMTq8pnsrfE"
           }
         ],
         "url": {
