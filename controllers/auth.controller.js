@@ -1,47 +1,63 @@
-import pool from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { pool } from "../db.js";
 
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const userExists = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    console.log("📥 Datos recibidos en register:", req.body);
 
-    if (userExists.rows.length > 0) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      console.log("⚠️ Falta email o password");
+      return res.status(400).json({ error: "Faltan datos" });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES ($1,$2)", [email, hashed]);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    res.json({ message: "Usuario registrado" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error en el registro" });
+    const result = await pool.query(
+      "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email",
+      [email, hashedPassword]
+    );
+
+    console.log("✅ Usuario creado:", result.rows[0]);
+
+    res.json({ message: "Usuario registrado", user: result.rows[0] });
+  } catch (error) {
+    console.error("❌ Error en register:", error.message);
+    res.status(500).json({ error: "Error en el servidor" });
   }
 };
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const userResult = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    console.log("📥 Datos recibidos en login:", req.body);
 
-    if (userResult.rows.length === 0) {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      console.log("⚠️ Falta email o password");
+      return res.status(400).json({ error: "Faltan datos" });
+    }
+
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const user = result.rows[0];
+
+    if (!user) {
+      console.log("❌ Usuario no encontrado");
       return res.status(400).json({ error: "Credenciales inválidas" });
     }
 
-    const user = userResult.rows[0];
-    const valid = await bcrypt.compare(password, user.password);
-
-    if (!valid) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log("❌ Password incorrecta");
       return res.status(400).json({ error: "Credenciales inválidas" });
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    console.log("✅ Login exitoso, token generado");
 
     res.json({ token });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error en login" });
+  } catch (error) {
+    console.error("❌ Error en login:", error.message);
+    res.status(500).json({ error: "Error en el servidor" });
   }
 };
