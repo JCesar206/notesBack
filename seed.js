@@ -1,24 +1,23 @@
-import pool from "./db.js";
-import bcrypt from "bcryptjs";
+// src/seed.js
+import { pool } from "./db.js";
 
-export const seed = async () => {
+export const runSeed = async () => {
   try {
-    // Crear tabla usuarios
+    console.log("🌱 Ejecutando seed en la base de datos...");
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
-    `);
 
-    // Crear tabla notas
-    await pool.query(`
       CREATE TABLE IF NOT EXISTS notes (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
-        content TEXT,
+        content TEXT NOT NULL,
         category VARCHAR(100),
         emoji VARCHAR(10),
         favorite BOOLEAN DEFAULT false,
@@ -27,35 +26,30 @@ export const seed = async () => {
       );
     `);
 
-    // Usuario de prueba
-    const email = "test@example.com";
-    const passwordHash = await bcrypt.hash("123456", 10);
+    // Insertar usuario de prueba si no existe
+    await pool.query(`
+      INSERT INTO users (email, password)
+      VALUES ('test@example.com', '$2b$10$CwTycUXWue0Thq9StjUM0uJ8vQhV5pK5lY9fL8YyG1FQ0mYt5k5e6')
+      ON CONFLICT (email) DO NOTHING;
+    `);
 
-    const userExists = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    // Insertar nota de prueba asociada al usuario de prueba
+    await pool.query(`
+      INSERT INTO notes (user_id, title, content, category, emoji, favorite, completed)
+      VALUES (
+        (SELECT id FROM users WHERE email = 'test@example.com'),
+        'Nota de ejemplo',
+        'Este es el contenido de la nota de prueba.',
+        'General',
+        '📝',
+        true,
+        false
+      )
+      ON CONFLICT DO NOTHING;
+    `);
 
-    if (userExists.rows.length === 0) {
-      await pool.query(
-        "INSERT INTO users (email, password) VALUES ($1, $2)",
-        [email, passwordHash]
-      );
-      console.log("✅ Usuario de prueba insertado");
-    }
-
-    // Nota de prueba
-    const user = await pool.query("SELECT id FROM users WHERE email=$1", [email]);
-    const userId = user.rows[0].id;
-
-    const noteExists = await pool.query("SELECT * FROM notes WHERE user_id=$1", [userId]);
-
-    if (noteExists.rows.length === 0) {
-      await pool.query(
-        "INSERT INTO notes (user_id, title, content, category, emoji, favorite, completed) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-        [userId, "Nota de prueba", "Contenido inicial", "General", "📝", true, false]
-      );
-      console.log("✅ Nota de prueba insertada");
-    }
-
+    console.log("✅ Seed ejecutado correctamente");
   } catch (err) {
-    console.error("❌ Error en seed:", err);
+    console.error("❌ Error al ejecutar seed:", err.message);
   }
 };
