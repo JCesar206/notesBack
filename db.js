@@ -5,10 +5,10 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DB_URL;
 
 if (!connectionString) {
-  console.error("❌ No se encontró la variable DATABASE_URL");
+  console.error("❌ No se encontró la variable DB_URL");
 }
 
 export const pool = new Pool({

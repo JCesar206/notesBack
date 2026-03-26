@@ -1,4 +1,3 @@
-// src/routes/debug.routes.js
 import { Router } from "express";
 import { pool } from "../db.js";
 
