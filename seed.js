@@ -1,4 +1,3 @@
-// src/seed.js
 import { pool } from "./db.js";
 
 export const runSeed = async () => {

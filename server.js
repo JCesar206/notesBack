@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { runSeed } from "./seed.js";  // importamos el seed
+import { pool } from "./db.js";
+import { runSeed } from "./seed.js";
 import authRoutes from "./routes/auth.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
@@ -14,15 +15,27 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/debug", debugRoutes);
 
-// endpoint base
 app.get("/", (req, res) => {
-  res.send("🚀 Backend funcionando con seed automático en Render");
+  res.send("🚀 Backend funcionando correctamente");
 });
-
-// ejecutar seed automáticamente al iniciar
-runSeed();
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`✅ Servidor escuchando en puerto ${PORT}`);
-});
+
+const startServer = async () => {
+  try {
+    const client = await pool.connect();
+    console.log("✅ DB conectada");
+    client.release();
+
+    await runSeed();
+
+    app.listen(PORT, () => {
+      console.log(`✅ Servidor en puerto ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Error crítico al iniciar:", err.message);
+    process.exit(1);
+  }
+};
+
+startServer();

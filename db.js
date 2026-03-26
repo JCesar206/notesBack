@@ -1,4 +1,3 @@
-// db.js
 import pg from "pg";
 import dotenv from "dotenv";
 
@@ -6,7 +5,7 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const connectionString = process.env.DB_URL;
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("❌ No se encontró la variable DATABASE_URL");
