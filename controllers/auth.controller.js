@@ -49,7 +49,7 @@ export const login = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     console.log("🔐 Password enviado:", password);
     console.log("🧠 Hash DB:", user.password);
     console.log("🧪 Resultado compare:", isMatch);
@@ -58,6 +58,9 @@ export const login = async (req, res) => {
       console.log("❌ Password incorrecta");
       return res.status(400).json({ error: "Credenciales inválidas" });
     }
+
+    const testHash = await bcrypt.hash("123456", 10);
+    console.log("🔥 Hash Nuevo:", testHash);
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     console.log("✅ Login exitoso, token generado:", token);
