@@ -7,15 +7,24 @@ import notesRoutes from "./routes/notes.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
 
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.FRONTEND_URL
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173", // dev
-    "http://localhost:5174",
-    process.env.FRONTEND_URL // production
-  ],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET","POST","PUT","DELETE"],
   credentials: true
 }));
+
 app.use(express.json());
 
 // rutas
