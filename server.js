@@ -41,10 +41,13 @@ const startServer = async () => {
     console.log("✅ DB conectada");
     client.release();
 
-    // Solo en dev
-    if (process.env.RUN_SEED === "true") {
+    if (true) {
       await runSeed();
     }
+    // Solo en dev
+    /* if (process.env.RUN_SEED === "true") {
+      await runSeed();
+    } */
 
     app.listen(PORT, () => {
       console.log(`✅ Servidor en puerto ${PORT}`);

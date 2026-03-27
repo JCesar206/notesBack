@@ -1,9 +1,11 @@
 import { pool } from "./db.js";
+import bcrypt from "bcryptjs";
 
 export const runSeed = async () => {
   try {
     console.log("🌱 Ejecutando seed en la base de datos...");
 
+    // Crear tablas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -25,15 +27,22 @@ export const runSeed = async () => {
       );
     `);
 
-    // Insertar usuario de prueba si no existe
-    await pool.query(`
-      INSERT INTO users (email, password)
-      VALUES ('test@example.com', '$2b$10$CwTycUXWue0Thq9StjUM0uJ8vQhV5pK5lY9fL8YyG1FQ0mYt5k5e6')
-      ON CONFLICT (email) 
-      DO UPDATE SET password = EXCLUDED.password;
-    `);
+    // 🔥 Generar hash dinámicamente
+    const hashedPassword = await bcrypt.hash("123456", 10);
+    console.log("🔐 Hash generado correctamente");
 
-    // Insertar nota de prueba asociada al usuario de prueba
+    // Insertar o actualizar usuario
+    await pool.query(
+      `
+      INSERT INTO users (email, password)
+      VALUES ($1, $2)
+      ON CONFLICT (email)
+      DO UPDATE SET password = EXCLUDED.password;
+      `,
+      ["test@example.com", hashedPassword]
+    );
+
+    // Insertar nota de ejemplo
     await pool.query(`
       INSERT INTO notes (user_id, title, content, category, emoji, favorite, completed)
       VALUES (
