@@ -27,8 +27,8 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-if (!process.env.DATABASE_URL) {
-  console.error("❌ Falta DATABASE_URL");
+if (!process.env.DB_URL) {
+  console.error("❌ Falta DB_URL");
   process.exit(1);
 }
 
