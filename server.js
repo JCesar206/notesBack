@@ -7,7 +7,13 @@ import notesRoutes from "./routes/notes.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // dev
+    process.env.FRONTEND_URL // production
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // rutas
