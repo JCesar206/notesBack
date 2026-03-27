@@ -51,9 +51,9 @@ const startServer = async () => {
       await runSeed();
     }
     // Solo en dev
-    /* if (process.env.RUN_SEED === "true") {
+    if (process.env.RUN_SEED === "true") {
       await runSeed();
-    } */
+    }
 
     app.listen(PORT, () => {
       console.log(`✅ Servidor en puerto ${PORT}`);
