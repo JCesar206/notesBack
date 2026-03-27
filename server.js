@@ -21,21 +21,48 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 
+// Validar envs
+if (!process.env.JWT_SECRET) {
+  console.error("❌ Falta JWT_SECRET");
+  process.exit(1);
+}
+
+if (!process.env.DATABASE_URL) {
+  console.error("❌ Falta DATABASE_URL");
+  process.exit(1);
+}
+
 const startServer = async () => {
   try {
+    console.log("🌍 Entorno:", process.env.NODE_ENV);
+    console.log("🔌 Conectando a DB...");
+
     const client = await pool.connect();
     console.log("✅ DB conectada");
     client.release();
 
-    await runSeed();
+    // Solo en dev
+    if (process.env.RUN_SEED === "true") {
+      await runSeed();
+    }
 
     app.listen(PORT, () => {
       console.log(`✅ Servidor en puerto ${PORT}`);
     });
+
   } catch (err) {
     console.error("❌ Error crítico al iniciar:", err.message);
     process.exit(1);
   }
 };
+
+// Errores globales
+process.on("unhandledRejection", (err) => {
+  console.error("❌ Unhandled Rejection:", err);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err);
+});
 
 startServer();

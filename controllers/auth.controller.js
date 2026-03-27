@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { pool } from "../db.js";  // Asegúrate que este archivo existe en src/db.js
+import { pool } from "../db.js";
 
 // Registro
 export const register = async (req, res) => {

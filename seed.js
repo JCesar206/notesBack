@@ -29,7 +29,8 @@ export const runSeed = async () => {
     await pool.query(`
       INSERT INTO users (email, password)
       VALUES ('test@example.com', '$2b$10$CwTycUXWue0Thq9StjUM0uJ8vQhV5pK5lY9fL8YyG1FQ0mYt5k5e6')
-      ON CONFLICT (email) DO NOTHING;
+      ON CONFLICT (email) 
+      DO UPDATE SET password = EXCLUDED.password;
     `);
 
     // Insertar nota de prueba asociada al usuario de prueba
